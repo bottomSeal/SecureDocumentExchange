@@ -1,7 +1,7 @@
 package com.example.securedocumentexchange.controller;
 
 import com.example.securedocumentexchange.security.SecurityService;
-import com.example.securedocumentexchange.security.SecurityServiceImpl;
+import com.example.securedocumentexchange.security.SecurityServiceImpl_;
 import com.sshtools.common.publickey.InvalidPassphraseException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -128,8 +128,6 @@ public class MainController implements Initializable {
 
         Button btn = (Button) event.getSource();
 
-        System.out.println(btn.getId());
-
         switch (btn.getId()){
             case "openkeyFileBtn" -> openkeyPath.setText(file.getAbsolutePath());
             case "secretKeyBtn" -> secretkeyPath.setText(file.getAbsolutePath());
@@ -148,6 +146,12 @@ public class MainController implements Initializable {
     @FXML
     void encryptText(ActionEvent event) throws GeneralSecurityException, IOException {
         if(publicKeyPath.getText().isEmpty()){
+            encryptedTextField.setText("Отсутствует публичный ключ для шифрования");
+            return;
+        }
+
+        if(textToEncryptField.getText().isEmpty()){
+            encryptedTextField.setText("Отсутствует текст для шифрования");
             return;
         }
 
@@ -163,6 +167,12 @@ public class MainController implements Initializable {
     @FXML
     void decryptMessage(ActionEvent event) throws InvalidPassphraseException, GeneralSecurityException, IOException {
         if(privateKeyPath.getText().isEmpty()){
+            decryptedText.setText("Отсутствует приватный ключ для дешифровки");
+            return;
+        }
+
+        if(encryptedBase64Text.getText().isEmpty()){
+            decryptedText.setText("Отсутствует Base64 для дешифровки");
             return;
         }
 
@@ -218,10 +228,12 @@ public class MainController implements Initializable {
     @FXML
     public void sign(ActionEvent event) throws InvalidPassphraseException, GeneralSecurityException, IOException {
         if(doumentToSignPath.getText().isEmpty()){
+            singStatus.setText("Отсутствует документ для подписи");
             return;
         }
 
         if(privateKeyForSignPath.getText().isEmpty()){
+            singStatus.setText("Отсутствует приватный ключ для подписи");
             return;
         }
 
@@ -237,14 +249,17 @@ public class MainController implements Initializable {
     @FXML
     public void verify(ActionEvent event) throws GeneralSecurityException, IOException {
         if(pubKeyPath.getText().isEmpty()){
+            verifyStatus.setText("Отсутствует публичный ключ");
             return;
         }
 
         if(sigFilePath.getText().isEmpty()){
+            verifyStatus.setText("Отсутствует файл цифровой подписи");
             return;
         }
 
         if(docFilePath.getText().isEmpty()){
+            verifyStatus.setText("Отсутствует документ для проверки");
             return;
         }
 
@@ -270,6 +285,6 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        securityService = new SecurityServiceImpl();
+        //securityService;
     }
 }
