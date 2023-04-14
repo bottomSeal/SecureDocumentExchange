@@ -1,7 +1,7 @@
 package com.example.securedocumentexchange.controller;
 
 import com.example.securedocumentexchange.security.SecurityService;
-import com.example.securedocumentexchange.security.SecurityServiceImpl_;
+import com.example.securedocumentexchange.security.SecurityServiceImpl;
 import com.sshtools.common.publickey.InvalidPassphraseException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -10,6 +10,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
@@ -162,6 +165,14 @@ public class MainController implements Initializable {
         String encryptedMessage = securityService.encryptMessage(message, publicKey);
 
         encryptedTextField.setText(encryptedMessage);
+
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+
+        ClipboardContent clipboardContent = new ClipboardContent();
+
+        clipboardContent.put(DataFormat.PLAIN_TEXT, encryptedMessage);
+
+        clipboard.setContent(clipboardContent);
     }
 
     @FXML
@@ -285,6 +296,6 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        //securityService;
+        securityService = new SecurityServiceImpl();
     }
 }

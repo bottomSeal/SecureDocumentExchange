@@ -15,7 +15,7 @@ public class SDEApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
 
-        FXMLLoader fxmlLoader = new FXMLLoader(SDEApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(SDEApplication.class.getResource("sde-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Secure Document Exchange");
         stage.setScene(scene);
