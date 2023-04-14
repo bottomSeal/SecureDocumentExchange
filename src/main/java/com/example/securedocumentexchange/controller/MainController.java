@@ -1,7 +1,6 @@
 package com.example.securedocumentexchange.controller;
 
 import com.example.securedocumentexchange.security.SecurityService;
-import com.example.securedocumentexchange.security.SecurityServiceImpl;
 import com.sshtools.common.publickey.InvalidPassphraseException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
