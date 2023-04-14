@@ -118,6 +118,9 @@ public class MainController implements Initializable {
     @FXML
     private Label verifyStatus;
 
+    @FXML
+    private Label clipboardStatus;
+
 
     @FXML
     void chooseFile(ActionEvent event) {
@@ -165,14 +168,6 @@ public class MainController implements Initializable {
         String encryptedMessage = securityService.encryptMessage(message, publicKey);
 
         encryptedTextField.setText(encryptedMessage);
-
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-
-        ClipboardContent clipboardContent = new ClipboardContent();
-
-        clipboardContent.put(DataFormat.PLAIN_TEXT, encryptedMessage);
-
-        clipboard.setContent(clipboardContent);
     }
 
     @FXML
@@ -285,6 +280,24 @@ public class MainController implements Initializable {
         } else {
             verifyStatus.setText("Подпись невалидна");
         }
+    }
+
+    @FXML
+    public void copyToClipboard(ActionEvent event) {
+        if (encryptedTextField.getText().isEmpty()){
+            clipboardStatus.setText("Вывод пуст");
+            return;
+        }
+
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+
+        ClipboardContent clipboardContent = new ClipboardContent();
+
+        clipboardContent.put(DataFormat.PLAIN_TEXT, encryptedTextField.getText());
+
+        clipboard.setContent(clipboardContent);
+
+        clipboardStatus.setText("Сообщение скопировано в буфер обмена");
     }
 
     public MainController(Window window){
