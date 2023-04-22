@@ -20,9 +20,7 @@ public class SecurityServiceImpl implements SecurityService{
 
     PrivateKey privateKey;
 
-    @Override
-    public String encryptMessage(String message, File publicKeyFile) throws IOException, GeneralSecurityException {
-        //byte[] publicKeyBytes = Base64.getDecoder().decode(new FileInputStream(publicKeyFile).readAllBytes());
+    private byte[] encrypt(String message, File publicKeyFile) throws IOException, GeneralSecurityException {
         SshPublicKey sshPublicKey = SshKeyUtils.getPublicKey(publicKeyFile);
 
         publicKey = sshPublicKey.getJCEPublicKey();
@@ -51,33 +49,10 @@ public class SecurityServiceImpl implements SecurityService{
 
         System.arraycopy(encryptedBytes, 0, outputMessageWithKey, iv.getIV().length + encryptedAesKey.length, encryptedBytes.length);
 
-        return Base64.getEncoder().encodeToString(outputMessageWithKey);
+        return outputMessageWithKey;
     }
 
-    private SecretKeySpec generateAes(int keySize) {
-        byte[] aesByte = new byte[keySize / 8];
-
-        SecureRandom secureRandom = new SecureRandom();
-
-        secureRandom.nextBytes(aesByte);
-
-        return new SecretKeySpec(aesByte, "AES");
-    }
-
-    private IvParameterSpec generateIv(int keySize) {
-        byte[] ivByte = new byte[keySize];
-
-        SecureRandom secureRandom = new SecureRandom();
-
-        secureRandom.nextBytes(ivByte);
-
-        return new IvParameterSpec(ivByte);
-    }
-
-    @Override
-    public String decryptMessage(String message, File privateKeyFile) throws IOException, GeneralSecurityException, InvalidPassphraseException {
-        byte[] encodedBytes = Base64.getDecoder().decode(message);
-
+    private String decrypt(byte[] encodedBytes, File privateKeyFile) throws IOException, GeneralSecurityException, InvalidPassphraseException {
         byte[] iv = Arrays.copyOfRange(encodedBytes, 0, 16);
 
         byte[] aesKeyEnc = Arrays.copyOfRange(encodedBytes, 16, 512+16);
@@ -105,50 +80,101 @@ public class SecurityServiceImpl implements SecurityService{
         return data;
     }
 
-    private String readFromFile(File document) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(document));
+    @Override
+    public String encryptMessage(String message, File publicKeyFile) throws IOException, GeneralSecurityException {
 
-        String textData = "";
-        String line;
+        byte[] outputMessageWithKey = encrypt(message, publicKeyFile);
 
-        while ((line = bufferedReader.readLine()) != null) {
-            textData += line + "\n";
-        }
-        bufferedReader.close();
-
-        return textData;
+        return Base64.getEncoder().encodeToString(outputMessageWithKey);
     }
 
-    private void writeToFile(File file, String data) throws IOException {
-        FileWriter fileWriter = new FileWriter(file);
+    private SecretKeySpec generateAes(int keySize) {
+        byte[] aesByte = new byte[keySize / 8];
 
-        fileWriter.write(data);
+        SecureRandom secureRandom = new SecureRandom();
 
-        fileWriter.close();
+        secureRandom.nextBytes(aesByte);
+
+        return new SecretKeySpec(aesByte, "AES");
+    }
+
+    private IvParameterSpec generateIv(int keySize) {
+        byte[] ivByte = new byte[keySize];
+
+        SecureRandom secureRandom = new SecureRandom();
+
+        secureRandom.nextBytes(ivByte);
+
+        return new IvParameterSpec(ivByte);
+    }
+
+    @Override
+    public String decryptMessage(String message, File privateKeyFile) throws IOException, GeneralSecurityException, InvalidPassphraseException {
+        byte[] encodedBytes = Base64.getDecoder().decode(message);
+
+        String data = decrypt(encodedBytes, privateKeyFile);
+
+        return data;
+    }
+
+    private String readFromFile(File document) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(document))) {
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line).append("\n");
+            }
+        }
+
+        return stringBuilder.toString();
+    }
+
+    private void writeStringToFile(File file, String data) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(data);
+        }
+    }
+
+    private byte[] readByteArrayFromFile(File document) throws IOException {
+        byte[] byteArray;
+
+        try (FileInputStream inputStream = new FileInputStream(document)) {
+            int fileSize = (int) document.length();
+            byteArray = new byte[fileSize];
+            inputStream.read(byteArray);
+        }
+
+        return byteArray;
+    }
+
+    private void writeByteArrayToFile(File file, byte[] data) throws IOException {
+        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+            outputStream.write(data);
+            outputStream.flush();
+        }
     }
 
     @Override
     public void encryptDocument(File document, File openKey) throws IOException, GeneralSecurityException {
         String data = readFromFile(document);
 
-        String encryptedData = encryptMessage(data, openKey);
+        byte[] encryptedData = encrypt(data, openKey);
 
         File newFile = new File("C:\\Users\\petre\\OneDrive\\Рабочий стол\\encrypted_document", document.getName());
 
-        writeToFile(newFile, encryptedData);
+        writeByteArrayToFile(newFile, encryptedData);
     }
 
     @Override
     public void decryptDocument(File document, File secretKey) throws IOException, GeneralSecurityException, InvalidPassphraseException {
-        String data = readFromFile(document);
+        byte[] data = readByteArrayFromFile(document);
 
-        System.out.println(data);
-        System.out.println(secretKey);
-        String decryptedData = decryptMessage(data, secretKey);
+        String decryptedData = decrypt(data, secretKey);
 
         File newFile = new File("C:\\Users\\petre\\OneDrive\\Рабочий стол\\decrypted_document", document.getName());
 
-        writeToFile(newFile, decryptedData);
+        writeStringToFile(newFile, decryptedData);
     }
 
     @Override
